@@ -1,0 +1,89 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GIRO FRAME · RETE-E-STAMPA.md</title><style>:root{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#27232b;background:#fff9fc}body{max-width:1000px;margin:auto;padding:35px 30px 80px;line-height:1.65}h1,h2,h3{line-height:1.2;letter-spacing:-.025em}h1{font-size:40px}h2{margin-top:48px;border-top:1px solid #eadce3;padding-top:25px;color:#b5195a}h3{margin-top:30px}a{color:#ba1b60}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}td,th{padding:11px;border:1px solid #e0d2da;text-align:left;vertical-align:top}th{background:#f4e2eb}code{background:#f2e7ee;border-radius:4px;padding:2px 5px;font-size:.9em;overflow-wrap:anywhere}pre{padding:18px;background:#2c2430;color:#fff;overflow:auto;border-radius:10px}pre code{background:transparent;padding:0}li{margin:7px 0}img{max-width:100%}.nav{font-size:13px;display:flex;gap:20px;flex-wrap:wrap;padding:15px 0;border-bottom:1px solid #eadce3}.pill{display:inline-block;padding:10px 20px;background:#e52b78;color:white;border-radius:8px;text-decoration:none}blockquote{border-left:4px solid #e52b78;margin:20px 0;padding:1px 20px;background:#f8e9f0}@media print{.nav{display:none}body{padding:0;background:white;font-size:11px}h1{font-size:28px}h2{break-after:avoid}a{color:inherit}pre{white-space:pre-wrap}}</style></head><body><nav class="nav"><a href="../INIZIA-QUI.html">GIRO FRAME · Inizia qui</a></nav><h1>Collegamento iPad → WCM → DNP</h1>
+<h2>Configurazione consigliata</h2>
+<pre><code class="language-text">Internet dell’evento / router 4G–5G
+                │
+       collegamento di rete
+                │
+             WCM Plus ─── USB ─── DNP
+                │
+          hotspot Wi-Fi WCM
+                │
+              iPad
+       Safari / GIRO FRAME
+                │
+       Internet attraverso WCM
+                │
+    GitHub Pages + Google Apps Script
+                │
+       Drive: JPEG pubblico → QR
+</code></pre>
+<p>DNP documenta per <strong>WCM Plus</strong> l’accesso Internet attraverso una rete Wi-Fi a monte e la disponibilità AirPrint. Nel pannello <strong>Network Settings → Wi-Fi Connection</strong> si sceglie la rete e si usa <strong>Join</strong>. Il manuale esclude le reti con pagina di accettazione/captive portal. Prevede anche configurazioni Ethernet. <a href="https://new.dnpphoto.com/Portals/0/Resources/WCM_Plus_User_Guide.pdf">Manuale ufficiale WCM Plus v5.6, pp. 3 e 12</a>.</p>
+<p>Procedura per questa postazione:</p>
+<ol>
+<li>Leggi modello esatto della DNP, modello WCM e versione firmware. Non assumere che un semplice adattatore Wi-Fi equivalga a WCM Plus.</li>
+<li>Collega DNP al WCM con USB, carica i consumabili e accendi entrambi.</li>
+<li>Collega l’iPad alla rete indicata dal WCM; apri il suo pannello usando l’indirizzo indicato nella pagina di avvio/manuale del dispositivo.</li>
+<li>Configura dal WCM una connessione verso un router con Internet. Un router dedicato all’evento rende la rete più controllabile; usa una rete senza pagina di login.</li>
+<li>Mantenendo l’iPad sul Wi-Fi WCM, apri il sito GIRO FRAME e verifica un caricamento Google effettivo.</li>
+<li>Verifica che AirPrint mostri la DNP e che una foto venga realmente stampata.</li>
+<li>Da un telefono in rete cellulare apri il QR: prova così che il link è raggiungibile anche fuori dalla rete di stampa.</li>
+</ol>
+<p>Possibile alternativa: iPad e WCM sulla stessa LAN del router con Internet, se supportata dal modello. Evita isolamento dei client e reti ospiti che impediscono la scoperta locale della stampante. Apple richiede che dispositivo e stampante siano sulla stessa rete Wi-Fi per il normale flusso AirPrint. <a href="https://support.apple.com/it-it/109349">Istruzioni Apple</a>.</p>
+<p><strong>WCM1/WCM2/altri modelli:</strong> le funzioni di rete e i menu possono differire. Va verificata la combinazione acquistata; il progetto non presume un indirizzo IP, un’API DNP o un firmware specifico.</p>
+<h2>Cosa fa STAMPA FOTO</h2>
+<p>Il JPEG composto è già pronto in pagina. Il pulsante chiama il comando di stampa del browser; un foglio di stile mostra solo la foto a 4 × 6 pollici, senza pulsanti, cornici dell’interfaccia o QR. Il browser apre il pannello di stampa. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/print">Comportamento <code>window.print()</code></a>.</p>
+<p>L’hostess sceglie la DNP e conferma. La web app non può scegliere silenziosamente una stampante, leggere l’esito fisico o distinguere con certezza una stampa da un annullamento. Per questo il registro non contiene falsi contatori “stampato”. Il caricamento remoto parte separatamente, al termine della composizione; il pannello iOS può coprire il QR e sospendere temporaneamente la pagina.</p>
+<p>Il formato CSS è una richiesta: iOS e il driver possono applicare scala, margini e ritaglio. Controlla nel WCM media 4 × 6, orientamento verticale, una copia, bordi e impostazione fit/fill. Disattiva eventuali cornici automatiche del WCM: sono già incorporate nel JPEG. Solo una prova su carta stabilisce l’allineamento finale.</p>
+<h2>Piano B: WCM Print</h2>
+<p>Il manuale DNP segnala possibili stampe bianche da dispositivi Apple e problemi di bordi con immagini HEIC; suggerisce WCM Print come alternativa. Qui la composizione esporta sempre un JPEG, ma il collaudo resta necessario. DNP offre anche API, la cui documentazione va richiesta al produttore. <a href="https://new.dnpphoto.com/Portals/0/Resources/WCM_Plus_User_Guide.pdf">Manuale, pp. 29–30</a>.</p>
+<p>Se AirPrint non funziona con l’hardware acquistato:</p>
+<ol>
+<li>Premi <strong>Salva copia sull’iPad</strong> e salva il JPEG in File.</li>
+<li>Apri il portale locale <strong>WCM Print</strong> in un’altra scheda, dall’indirizzo del tuo dispositivo.</li>
+<li>Seleziona quel JPEG, formato 4 × 6, controlla l’anteprima e stampa.</li>
+<li>Torna a GIRO FRAME per mostrare il QR.</li>
+</ol>
+<p>Il frontend HTTPS non invia richieste dirette a un indirizzo HTTP della LAN: non sono state inventate API WCM e non dipende dall’aggiramento di CORS o delle protezioni per reti private. Per una futura stampa a un solo tocco senza pannello servirebbe una diversa integrazione, per esempio un agente locale o un’app nativa con API ufficiali DNP e gestione autenticata dei lavori.</p>
+<h2>Cosa significa “funziona da remoto”</h2>
+<table>
+<thead>
+<tr>
+<th>Situazione</th>
+<th>Scatto/composizione</th>
+<th>Salvataggio e QR</th>
+<th>DNP dell’evento</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>iPad su rete WCM con Internet</td>
+<td>Sì</td>
+<td>Sì</td>
+<td>Sì, tramite AirPrint e conferma</td>
+</tr>
+<tr>
+<td>iPad su WCM senza Internet, già avviato e attivato</td>
+<td>Sì, con grafica locale</td>
+<td>In attesa; nessun nuovo QR pubblico</td>
+<td>Possibile stampa locale</td>
+</tr>
+<tr>
+<td>Prima apertura senza Internet</td>
+<td>Non garantita</td>
+<td>No</td>
+<td>Non risolve la configurazione dell’app</td>
+</tr>
+<tr>
+<td>iPad lontano dall’evento con Internet</td>
+<td>Sì, dopo accesso postazione</td>
+<td>Sì</td>
+<td>No: la DNP locale non è raggiungibile via AirPrint</td>
+</tr>
+<tr>
+<td>Telefono ospite con Internet, fuori dalla rete WCM</td>
+<td>Non necessario</td>
+<td>Apre il link del QR</td>
+<td>Non necessario</td>
+</tr>
+</tbody></table>
+<p>Non affidarti automaticamente alla connessione cellulare dell’iPad mentre è su un Wi-Fi senza Internet: instradamento e comportamento dipendono dalla configurazione. L’architettura prevista fornisce Internet dalla rete di stampa stessa. Un QR a un indirizzo privato del WCM non sostituirebbe il download pubblico richiesto.</p>
+</body></html>

@@ -1,0 +1,13 @@
+<!doctype html><html><head><base target="_top"><meta charset="utf-8"></head><body>
+<script>
+// Valori serializzati/escapati dal server, origine esatta e canale casuale.
+const ORIGIN = <?!= originJson ?>;
+const CHANNEL = <?!= channelJson ?>;
+window.addEventListener('message', function(e){
+  const m=e.data;
+  if(e.origin!==ORIGIN || e.source!==window.top || !m || m.type!=='giro-request' || m.channel!==CHANNEL || typeof m.id!=='string')return;
+  const send=function(result,error){window.top.postMessage({type:'giro-response',channel:CHANNEL,id:m.id,result:result||null,error:error||null},ORIGIN);};
+  google.script.run.withSuccessHandler(function(result){send(result,null);}).withFailureHandler(function(err){send(null,err.message||'Errore del servizio.');}).api(m.action,m.payload);
+});
+window.top.postMessage({type:'giro-ready',channel:CHANNEL},ORIGIN);
+</script></body></html>

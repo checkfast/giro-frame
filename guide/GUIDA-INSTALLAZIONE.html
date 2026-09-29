@@ -1,0 +1,282 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GIRO FRAME · GUIDA-INSTALLAZIONE.md</title><style>:root{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#27232b;background:#fff9fc}body{max-width:1000px;margin:auto;padding:35px 30px 80px;line-height:1.65}h1,h2,h3{line-height:1.2;letter-spacing:-.025em}h1{font-size:40px}h2{margin-top:48px;border-top:1px solid #eadce3;padding-top:25px;color:#b5195a}h3{margin-top:30px}a{color:#ba1b60}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}td,th{padding:11px;border:1px solid #e0d2da;text-align:left;vertical-align:top}th{background:#f4e2eb}code{background:#f2e7ee;border-radius:4px;padding:2px 5px;font-size:.9em;overflow-wrap:anywhere}pre{padding:18px;background:#2c2430;color:#fff;overflow:auto;border-radius:10px}pre code{background:transparent;padding:0}li{margin:7px 0}img{max-width:100%}.nav{font-size:13px;display:flex;gap:20px;flex-wrap:wrap;padding:15px 0;border-bottom:1px solid #eadce3}.pill{display:inline-block;padding:10px 20px;background:#e52b78;color:white;border-radius:8px;text-decoration:none}blockquote{border-left:4px solid #e52b78;margin:20px 0;padding:1px 20px;background:#f8e9f0}@media print{.nav{display:none}body{padding:0;background:white;font-size:11px}h1{font-size:28px}h2{break-after:avoid}a{color:inherit}pre{white-space:pre-wrap}}</style></head><body><nav class="nav"><a href="../INIZIA-QUI.html">GIRO FRAME · Inizia qui</a></nav><h1>GIRO FRAME — installazione passo per passo</h1>
+<h2>1. Cosa ti serve</h2>
+<ul>
+<li>Account Google con accesso a Fogli, Drive e Apps Script. Il proprietario deve poter pubblicare una web app per “Chiunque” e condividere singoli file con “Chiunque abbia il link”. Se l’account aziendale impedisce queste opzioni, serve l’intervento dell’amministratore.</li>
+<li>Account GitHub e un repository dedicato, chiamato ad esempio <code>giro-frame</code>.</li>
+<li>iPad con Safari aggiornato, DNP con carta e ribbon corretti, modello WCM compatibile e connessione Internet nella postazione.</li>
+<li>Cornice PNG trasparente e logo PNG trasparente del cliente. I file dimostrativi inclusi permettono le prime prove.</li>
+</ul>
+<p>Il codice è completo ma il link pubblico effettivo nascerà dopo la pubblicazione nei tuoi account. Nessun account, repository o deployment viene creato automaticamente da questo archivio.</p>
+<h2>2. Crea il Google Sheet e il backend</h2>
+<ol>
+<li>Apri <a href="https://sheets.google.com">Google Sheets</a> e crea un foglio vuoto chiamato <strong>GIRO FRAME – Configurazione</strong>. Tienilo privato, condiviso solo con chi gestisce l’evento.</li>
+<li>Nel foglio scegli <strong>Estensioni → Apps Script</strong>. Si apre il progetto collegato al foglio.</li>
+<li>Rinomina il progetto <strong>GIRO FRAME Backend</strong>.</li>
+<li>Apri <code>apps-script/Code.gs</code> di questo pacchetto in un editor di testo. Copia tutto il contenuto e sostituisci quello del file <code>Code.gs</code> del progetto Google.</li>
+<li>Nel progetto premi <strong>+ → HTML</strong>, chiamalo esattamente <strong>Bridge</strong>. Sostituisci il contenuto con <code>apps-script/Bridge.html</code>. Google aggiunge <code>.html</code> automaticamente.</li>
+<li>Apri <strong>Impostazioni progetto</strong> (ingranaggio) e abilita la visualizzazione del file manifest <code>appsscript.json</code> nell’editor.</li>
+<li>Torna nell’editor e sostituisci il contenuto di <code>appsscript.json</code> con quello incluso in <code>apps-script/appsscript.json</code>.</li>
+<li>Salva. Nella selezione delle funzioni scegli <strong>setup_</strong> e premi <strong>Esegui</strong>. Autorizza l’accesso richiesto per il progetto che stai creando. Se Google o la tua organizzazione blocca l’autorizzazione, risolvi con l’amministratore prima di procedere.</li>
+<li>Attendi il completamento, quindi torna al foglio e ricaricalo. Troverai le schede <strong>Config</strong>, <strong>Photos</strong> e il menu <strong>GIRO FRAME</strong>. Il foglio iniziale vuoto può restare.</li>
+<li>In Google Drive troverai la cartella privata <strong>GIRO FRAME — Foto</strong>. Non renderla pubblica: il backend condividerà soltanto i singoli JPEG.</li>
+</ol>
+<p><code>setup_</code> si può eseguire nuovamente: conserva fogli e password già presenti. Non cancellare le proprietà del progetto né cambiare <code>PEPPER</code>: serve a verificare le password già memorizzate.</p>
+<h2>3. Imposta l’origine del sito</h2>
+<p>Prima scegli il nome dell’account e del repository GitHub. Esempio illustrativo:</p>
+<ul>
+<li>account: <code>mioaccount</code></li>
+<li>repository: <code>giro-frame</code></li>
+<li>futuro link app: <code>https://mioaccount.github.io/giro-frame/</code></li>
+<li>origine da autorizzare: <code>https://mioaccount.github.io</code></li>
+</ul>
+<p>In Apps Script apri <strong>Impostazioni progetto → Proprietà script → Aggiungi proprietà script</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Proprietà</th>
+<th>Valore</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>APP_ORIGIN</code></td>
+<td><code>https://mioaccount.github.io</code>, sostituendo l’account reale; senza slash finale e senza <code>/giro-frame</code></td>
+</tr>
+</tbody></table>
+<p>Le proprietà <code>SPREADSHEET_ID</code>, <code>PHOTO_FOLDER_ID</code>, <code>PEPPER</code> e <code>MAX_PHOTOS</code> sono già state create da <code>setup_</code>. Non copiarle nel frontend. <code>MAX_PHOTOS</code> vale inizialmente 2000 e conta anche le righe scadute del registro; si può aumentare consapevolmente dal backend.</p>
+<p>Per un dominio personalizzato, usa la sua origine HTTPS esatta. Dedica l’origine a contenuti fidati: tutte le pagine dello stesso dominio condividono il confine di sicurezza del browser.</p>
+<h2>4. Pubblica Apps Script</h2>
+<ol>
+<li>In alto a destra scegli <strong>Esegui deployment → Nuovo deployment</strong>.</li>
+<li>Seleziona il tipo <strong>App web</strong>.</li>
+<li>Descrizione: <code>GIRO FRAME v1</code>.</li>
+<li><strong>Esegui come:</strong> te stesso, proprietario del progetto.</li>
+<li><strong>Chi ha accesso:</strong> <strong>Chiunque</strong>, compresi gli utenti non autenticati. Non scegliere “Solo io” o “Chiunque con un account Google”.</li>
+<li>Pubblica e copia l’<strong>URL dell’app web</strong>, che termina con <code>/exec</code>.</li>
+<li>Non usare il link <code>/dev</code>: è destinato alle prove degli editor del progetto.</li>
+</ol>
+<p>L’accesso pubblico al deployment consente il collegamento del sito. Le operazioni di caricamento e modifica restano protette dalla password verificata dal server. I visitatori senza password non possono caricare foto.</p>
+<p>Aprendo direttamente il link <code>/exec</code> è normale leggere “apri l’app dal link GitHub Pages”: questo deployment fa da collegamento al sito, non è l’interfaccia per la hostess.</p>
+<p>Se successivamente cambi <code>Code.gs</code> o <code>Bridge.html</code>, salva e vai su <strong>Gestisci deployment → Modifica → Nuova versione → Esegui deployment</strong>. Aggiorna il deployment esistente per conservare lo stesso URL. Le modifiche ai valori del Sheet non richiedono una nuova versione.</p>
+<h2>5. Collega il frontend</h2>
+<p>Apri <code>docs/config.js</code>. Sostituisci soltanto il testo <code>INCOLLA_QUI_URL_APPS_SCRIPT_EXEC</code>, mantenendo le virgolette, con il link <code>/exec</code> ottenuto prima. Lascia <code>demo: false</code>.</p>
+<p>Esempio di struttura, da completare con il tuo deployment:</p>
+<pre><code class="language-js">window.GIRO_BOOT = Object.freeze({
+  backendUrl: &#39;https://script.google.com/macros/s/IL_TUO_DEPLOYMENT/exec&#39;,
+  demo: false
+});
+</code></pre>
+<p>L’URL del deployment è pubblico e può stare nel codice. Password, token Google, proprietà script e contenuto privato dello Sheet non devono essere caricati su GitHub. Per accedere alla postazione si inserisce la password nell’app: non si modifica il codice per aggiungerla.</p>
+<h2>6. Pubblica su GitHub Pages, senza comandi</h2>
+<ol>
+<li>Apri <a href="https://github.com">GitHub</a>, accedi e crea un repository <strong>Public</strong> chiamato <code>giro-frame</code>. Con GitHub Free la pubblicazione Pages richiede normalmente un repository pubblico.</li>
+<li>Se richiesto, aggiungi un README iniziale.</li>
+<li>Nel repository scegli <strong>Add file → Upload files</strong>.</li>
+<li>Trascina il <strong>contenuto</strong> della cartella <code>giro-frame</code> del pacchetto: <code>docs</code>, <code>apps-script</code>, <code>guide</code>, <code>tests</code>, <code>README.md</code> e <code>package.json</code>. Non caricare solo il file ZIP e non aggiungere un livello di cartella esterno.</li>
+<li>Conferma con <strong>Commit changes</strong>.</li>
+<li>Controlla che nella pagina del repository si veda la cartella <code>docs</code> e che dentro ci sia <code>index.html</code>.</li>
+<li>Vai in <strong>Settings → Pages</strong>.</li>
+<li>In <strong>Build and deployment</strong>, scegli <strong>Deploy from a branch</strong>.</li>
+<li>Branch <strong>main</strong>, cartella <strong>/docs</strong>, poi <strong>Save</strong>.</li>
+<li>Attendi la pubblicazione e usa il link mostrato da GitHub, normalmente <code>https://ACCOUNT.github.io/giro-frame/</code>.</li>
+</ol>
+<p>Se il file nascosto <code>.nojekyll</code> non è stato trascinato, aggiungilo direttamente su GitHub con <strong>Add file → Create new file</strong>, nome <code>docs/.nojekyll</code>, contenuto vuoto. Il sito non richiede Jekyll o un processo di compilazione.</p>
+<p>GitHub documenta la pubblicazione da <code>/docs</code> e indica che gli aggiornamenti possono richiedere alcuni minuti. <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site">Guida ufficiale GitHub Pages</a>.</p>
+<h2>7. Prima apertura e password</h2>
+<ol>
+<li>Apri il link pubblico in Safari sull’iPad, inizialmente con Internet funzionante.</li>
+<li>Verifica che non compaia il banner DEMO. Se c’è, rimuovi <code>?demo=1</code> dal link e controlla <code>demo: false</code> in <code>config.js</code>.</li>
+<li>Tocca <strong>Impostazioni</strong> e inserisci la password iniziale <strong>2006</strong>.</li>
+<li>Inserisci subito una nuova password di almeno 8 caratteri e premi <strong>SALVA IMPOSTAZIONI</strong>. La password iniziale è conosciuta e non va usata per un evento pubblico.</li>
+<li>Tocca <strong>Attiva postazione</strong> e inserisci la nuova password. La sessione di caricamento dura fino a 6 ore; Google può eliminare prima una sessione dalla cache. In tal caso basta accedere di nuovo.</li>
+<li>L’accesso a Impostazioni richiede sempre la password; il semplice token della postazione non consente di modificare la configurazione.</li>
+</ol>
+<p>L’app ricontrolla il foglio prima di iniziare ogni nuovo scatto online e quando apri Impostazioni. Durante uno scatto conserva la grafica selezionata all’inizio, evitando cambi a metà del flusso.</p>
+<h2>8. Cornice e logo del cliente</h2>
+<p>Prepara:</p>
+<ul>
+<li><strong>Cornice:</strong> PNG RGBA trasparente, <strong>1200 × 1800 pixel</strong>, verticale. L’area del volto deve essere trasparente; un rettangolo bianco non è trasparenza.</li>
+<li><strong>Logo:</strong> PNG trasparente. Viene ridimensionato mantenendo le proporzioni in uno spazio massimo di <strong>960 × 140 pixel</strong>.</li>
+<li>La fascia inferiore della composizione è bianca, da <code>y=1600</code> a <code>y=1800</code>. La cornice si sovrappone alla foto e alla fascia, poi viene applicato il logo centrato. Per una fascia trasparente o dimensioni diverse occorre modificare il layout in <code>docs/core.js</code>.</li>
+<li>Tieni testi e loghi importanti lontano dal bordo: margine consigliato almeno 60 pixel, da verificare sul ritaglio reale della DNP.</li>
+</ul>
+<p>Percorso più semplice:</p>
+<ol>
+<li>Carica <code>cornice-cliente.png</code> e <code>logo-cliente.png</code> nella cartella <strong>docs/assets</strong> del repository.</li>
+<li>Attendi l’aggiornamento di Pages.</li>
+<li>Apri i link diretti in una nuova scheda: <code>https://ACCOUNT.github.io/giro-frame/assets/cornice-cliente.png</code> e <code>…/logo-cliente.png</code>.</li>
+<li>Copia questi URL in <strong>Impostazioni → URL cornice / URL logo</strong>, poi salva.</li>
+<li>Fai una foto di prova. Se lasci un URL vuoto, l’app usa la grafica dimostrativa inclusa.</li>
+</ol>
+<p>I link devono restituire direttamente un’immagine pubblica in HTTPS, con CORS che ne consenta l’uso nel canvas. I link “Condividi” di Google Drive e le pagine GitHub <code>/blob/…</code> non sono URL immagine adatti. Le immagini sullo stesso sito Pages evitano il problema CORS.</p>
+<p>Per sostituire un’immagine, usa un nome nuovo o aggiungi <code>?v=2</code> all’URL. L’app conserva una copia locale per funzionare durante un’interruzione della rete; non ricarica continuamente un’immagine con lo stesso URL.</p>
+<h2>9. Modifiche dal Google Sheet</h2>
+<p>Nel foglio <strong>Config</strong> cambia solo la colonna <strong>value</strong> delle righe consentite. Non rinominare le chiavi.</p>
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>Cosa modificare</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code></td>
+<td>Titolo dell’app, massimo 80 caratteri</td>
+</tr>
+<tr>
+<td><code>subtitle</code></td>
+<td>Sottotitolo, massimo 200 caratteri</td>
+</tr>
+<tr>
+<td><code>frameUrl</code></td>
+<td>Link diretto HTTPS della cornice; vuoto usa demo</td>
+</tr>
+<tr>
+<td><code>logoUrl</code></td>
+<td>Link diretto HTTPS del logo; vuoto usa demo</td>
+</tr>
+<tr>
+<td><code>password_new</code></td>
+<td>Scrivi qui la nuova password, da 8 a 128 caratteri</td>
+</tr>
+<tr>
+<td><code>password_hash</code></td>
+<td>Campo gestito dal server, non modificare</td>
+</tr>
+<tr>
+<td><code>retentionDays</code></td>
+<td>Conservazione online in giorni, da 1 a 365; default 7</td>
+</tr>
+</tbody></table>
+<p>Per cambiare password dal foglio: inseriscila in <code>password_new</code>, poi scegli <strong>GIRO FRAME → Applica modifiche / nuova password</strong>. Il campo viene svuotato e viene salvato il verificatore crittografico in <code>password_hash</code>. Anche la prima richiesta successiva all’API applica una password in attesa. La modifica invalida tutte le sessioni già attive.</p>
+<p>La password digitata nel foglio può rimanere nella cronologia versioni di Google: consenti accesso al Sheet solo a gestori fidati. Per evitare questo passaggio, usa il menu Impostazioni nell’app.</p>
+<p>Le impostazioni salvate dall’app scrivono nello stesso foglio. Se qualcuno ha cambiato i valori dopo l’apertura del menu, il server rifiuta il salvataggio vecchio: chiudi e riapri Impostazioni. Evita comunque modifiche simultanee dal foglio durante un salvataggio dell’app: l’interfaccia di Sheets non partecipa al blocco transazionale di Apps Script.</p>
+<h2>10. Registro foto e conservazione</h2>
+<p>Il foglio <strong>Photos</strong> si compila automaticamente:</p>
+<table>
+<thead>
+<tr>
+<th>Colonna</th>
+<th>Significato</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>Identificativo casuale della foto; riutilizzato per i retry</td>
+</tr>
+<tr>
+<td><code>createdAt</code></td>
+<td>Data e ora UTC del primo salvataggio</td>
+</tr>
+<tr>
+<td><code>fileId</code></td>
+<td>Identificativo Drive</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td>Link pubblico alla pagina della singola foto</td>
+</tr>
+<tr>
+<td><code>downloadUrl</code></td>
+<td>Link diretto al download, soggetto alle regole di Drive</td>
+</tr>
+<tr>
+<td><code>configVersion</code></td>
+<td>Impronta della configurazione usata per la foto</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>pending</code>, <code>ready</code> oppure <code>deleted</code></td>
+</tr>
+<tr>
+<td><code>sha256</code></td>
+<td>Impronta del JPEG per impedire un riuso incoerente dell’ID</td>
+</tr>
+<tr>
+<td><code>consentAt</code></td>
+<td>Ora della conferma hostess registrata dal server</td>
+</tr>
+</tbody></table>
+<p>Non eliminare o riordinare manualmente le righe mentre l’app è in uso. I retry con lo stesso ID riprendono il file esistente; non creano una nuova copia a ogni tentativo. Se la condivisione di Drive fallisce, il file rimane <code>pending</code> e l’app non mostra un QR falso.</p>
+<p><strong>Attiva la pulizia:</strong> dal menu del foglio scegli <strong>GIRO FRAME → Installa pulizia giornaliera</strong> e autorizza se richiesto. Controlla in Apps Script → Trigger che esista <code>cleanup_</code>. La pulizia revoca l’accesso pubblico e sposta i file scaduti nel cestino; non svuota il cestino. Elabora al massimo 100 file al giorno: per 500 foto scadute occorrono fino a 5 esecuzioni. Se vuoi applicare la scadenza a tutti subito, esegui più volte <strong>Esegui pulizia foto scadute</strong> fino al completamento. Il foglio mantiene il registro tecnico.</p>
+<p>Dopo la scadenza il QR non dà più accesso. Puoi anche revocare subito un singolo link da Drive → Condividi → Accesso limitato e spostare il file nel cestino; segna <code>deleted</code> nella riga corrispondente per impedire che un retry lo ripubblichi.</p>
+<p>I link sono accessibili a chi li possiede e possono essere inoltrati. Non esiste una galleria pubblica nell’app, ma un QR non è un controllo d’identità. Prima dell’evento prepara l’informativa del cliente e concorda durata e modalità di condivisione. La casella nell’app registra l’operazione hostess, non sostituisce la documentazione dell’evento.</p>
+<h2>11. Uso quotidiano per la hostess</h2>
+<ol>
+<li>Apri il link in <strong>Safari</strong>, attiva la postazione e verifica che Internet e stampa siano disponibili.</li>
+<li>Informa l’ospite e spunta la conferma prevista dal cliente.</li>
+<li>Tocca <strong>SCATTA LA TUA FOTO</strong>. Consenti la fotocamera se Safari lo chiede.</li>
+<li>Usa <strong>Cambia fotocamera</strong> se necessario. Inquadra al centro, lasciando spazio per cornice e fascia inferiore.</li>
+<li>Tocca <strong>SCATTA FOTO</strong>. Se il browser non può aprire la fotocamera, usa <strong>Usa fotocamera di iPad</strong> e scegli lo scatto nativo.</li>
+<li>Mostra l’anteprima all’ospite: <strong>RIFAI</strong> riparte, <strong>CONTINUA</strong> crea la foto con grafica.</li>
+<li>La foto viene prima conservata sull’iPad, poi caricata su Drive. Puoi premere <strong>STAMPA FOTO</strong> senza attendere il QR.</li>
+<li>Nel pannello AirPrint seleziona la DNP, formato 4 × 6, una copia, e conferma. La disponibilità delle opzioni dipende dal WCM.</li>
+<li>Mostra il QR quando appare. L’ospite apre la foto sul suo telefono e usa il comando download di Drive. Su iPhone può essere necessario aprire il file scaricato e scegliere Condividi → Salva immagine.</li>
+<li>Premi <strong>NUOVO OSPITE</strong>.</li>
+</ol>
+<p>Il pulsante “Salva copia sull’iPad” è anche il piano B per WCM Print. Il salvataggio in File/Foto può richiedere un’ulteriore conferma di Safari.</p>
+<h2>12. Se Internet si interrompe</h2>
+<p>La stampa locale e la composizione possono continuare con grafica già caricata. La foto finale viene conservata in IndexedDB sull’iPad. Il QR compare solo dopo un salvataggio remoto riuscito: senza Internet non si può promettere il download sul telefono dell’ospite.</p>
+<p>L’interfaccia è memorizzata da un service worker dopo la prima apertura riuscita. Il primo accesso, l’attivazione di una nuova postazione e il caricamento di nuove grafiche richiedono Internet. Il badge “Rete disponibile” indica lo stato del browser, non garantisce che Google sia raggiungibile. Il collegamento può impiegare fino a circa 25 secondi e una richiesta fino a 90 secondi prima di segnalare l’assenza di risposta.</p>
+<p>In <strong>Foto da recuperare</strong> trovi le prime 24 foto in attesa, dalle più vecchie, e fino a 12 copie già online. Apri una foto e premi <strong>Riprova salvataggio</strong>; dopo il caricamento torna al pannello per le altre. Non c’è caricamento garantito in background: Safari può sospendere la pagina quando spegni lo schermo o cambi app.</p>
+<p>Le copie già online vengono rimosse localmente dopo 24 ore o quando superano il limite di 12, alla successiva lettura della lista. Le foto ancora da caricare non vengono cancellate automaticamente. Per eliminarle serve <strong>Rimuovi</strong> e una conferma esplicita.</p>
+<p>Non usare navigazione privata, non cancellare dati del sito e non cambiare dominio mentre ci sono foto in attesa. iPadOS può comunque liberare memoria del browser: la coda è una protezione di emergenza, non un backup permanente. Salva copie importanti anche in File. Non garantire 500 foto offline senza verificare spazio e stabilità sul tuo iPad.</p>
+<h2>13. Quando qualcosa non funziona</h2>
+<table>
+<thead>
+<tr>
+<th>Problema</th>
+<th>Controllo / soluzione</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Configurazione iniziale necessaria</td>
+<td>Sostituisci il segnaposto in <code>docs/config.js</code> e attendi Pages</td>
+</tr>
+<tr>
+<td>Backend non raggiungibile</td>
+<td><code>/exec</code> corretto, deployment “Chiunque”, <code>APP_ORIGIN</code> esatto, Internet; controlla anche le Esecuzioni in Apps Script</td>
+</tr>
+<tr>
+<td>Accesso Google richiesto continuamente</td>
+<td>Controlla che il deployment sia anonimo ed eseguito come proprietario; prova Safari senza sessioni Google multiple; non disattivare globalmente protezioni del browser per aggirare un deployment errato</td>
+</tr>
+<tr>
+<td>Sessione scaduta</td>
+<td>Attiva nuovamente la postazione; le foto in attesa restano locali</td>
+</tr>
+<tr>
+<td>Troppi tentativi</td>
+<td>Attendi 15 minuti; il gestore può eliminare solo la proprietà <code>LOGIN_RATE</code> da Apps Script se sta risolvendo un errore legittimo</td>
+</tr>
+<tr>
+<td>Cornice non caricabile</td>
+<td>URL diretto HTTPS, file trasparente corretto, CORS e dimensioni; usa Pages</td>
+</tr>
+<tr>
+<td>Foto salvata ma nessun QR</td>
+<td>Internet, permessi di condivisione Drive, quota/spazio; premi Riprova</td>
+</tr>
+<tr>
+<td>QR chiede accesso</td>
+<td>Prova il link da un telefono non autenticato; verifica condivisione file e policy dell’account</td>
+</tr>
+<tr>
+<td>Memoria locale piena</td>
+<td>Scarica copie, carica le foto in attesa, rimuovi soltanto le copie recuperate; non cancellare tutti i dati del browser</td>
+</tr>
+<tr>
+<td>Pulsante stampa non apre il pannello</td>
+<td>Usa Safari completo; in alternativa scarica il JPEG e usa il portale WCM Print</td>
+</tr>
+<tr>
+<td>Impostazioni modificate nel frattempo</td>
+<td>Chiudi e riapri il menu; confronta il foglio prima di risalvare</td>
+</tr>
+<tr>
+<td>Nuova grafica non compare</td>
+<td>Cambia nome file o aggiungi <code>?v=2</code>; avvia un nuovo scatto</td>
+</tr>
+</tbody></table>
+<p>Per la rete della stampante leggi <a href="RETE-E-STAMPA.html">RETE-E-STAMPA.md</a>. Prima degli ospiti completa <a href="COLLAUDO.html">COLLAUDO.md</a>.</p>
+<p>Documentazione di riferimento: <a href="https://developers.google.com/apps-script/guides/web">deployment web app Google</a>, <a href="https://developers.google.com/apps-script/guides/html/communication">comunicazione HTML Service</a>, <a href="https://developers.google.com/apps-script/guides/services/quotas">quote Apps Script</a>. I servizi hanno limiti e disponibilità dipendenti dall’account: per 500 ospiti fai una prova di carico reale sul deployment e controlla spazio Drive, tempi di upload e numero di stampe richieste.</p>
+</body></html>
