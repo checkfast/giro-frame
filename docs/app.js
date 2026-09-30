@@ -1,9 +1,6 @@
 import {cropToCanvas,compose,loadImage,safeAssetUrl,renderQr} from './core.js';
 import {store,photos} from './storage.js';
 import {Bridge} from './bridge.js';
-import {photoFile,printMode,createPrinter} from './printing.js';
-let printableFile;
-const printPhoto=createPrinter(navigator,()=>window.print());
 const $=s=>document.querySelector(s), demo=new URLSearchParams(location.search).get('demo')==='1'||window.GIRO_BOOT.demo;
 const defaults={title:'Il tuo momento in rosa.',subtitle:'Un sorriso, uno scatto. Porta con te il ricordo di questa giornata.',frameUrl:'',logoUrl:'',version:'demo'};
 let config,assets,shotAssets,shotConfig,raw,current,stream,facing='environment',adminToken,loginMode='station',settingsVersion;
@@ -12,10 +9,10 @@ const uploads=new Set();let cameraGeneration=0;
 function message(t=''){$('#message').textContent=t;}
 function online(){const on=navigator.onLine;$('#connection').textContent=on?'Rete disponibile':'Senza rete';$('#connection').classList.toggle('online',on);}
 function stopCamera(){cameraGeneration++;stream?.getTracks().forEach(t=>t.stop());stream=null;$('#video').srcObject=null;}
-function screen(id){document.body.classList.toggle('camera-open',id==='capture');document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);window.scrollTo({top:0,behavior:'smooth'});}
+function screen(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);window.scrollTo({top:0,behavior:'smooth'});}
 function stationState(){
   $('#station-status').textContent=demo?'Modalità dimostrativa':token?'Postazione attiva · sessione fino a 6 ore':'Attiva la postazione per iniziare';
-  $('#station-button').hidden=!!token;$('#lock-station').hidden=!token;$('#begin').disabled=!config||!assets;
+  $('#station-button').hidden=!!token||demo;$('#begin').disabled=!config||!assets||!$('#consent').checked||(!token&&!demo);
 }
 function applyConfig(c){config=c;const title=$('#event-title');title.textContent=c.title;if(c.title.endsWith('in rosa.')){title.textContent=c.title.slice(0,-8);const em=document.createElement('em');em.textContent='in rosa.';title.append(em);}$('#event-subtitle').textContent=c.subtitle;stationState();}
 async function imageData(url){const im=await loadImage(url);if(im.naturalWidth>6000||im.naturalHeight>6000)throw new Error('Grafica troppo grande: massimo 6000 px per lato.');const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);return c.toDataURL('image/png');}
@@ -40,7 +37,7 @@ async function camera(){
 }
 function preview(source){raw=cropToCanvas(source);$('#raw-preview').src=raw.toDataURL('image/jpeg',.9);stopCamera();screen('preview');message();}
 async function begin(){
-  if(!token&&!demo){login('admin');return;}
+  if(!token&&!demo){login('station');return;}
   $('#begin').disabled=true;message('Verifica della grafica…');
   try{
     if(navigator.onLine&&!demo)await syncConfig();message();
@@ -48,12 +45,10 @@ async function begin(){
   finally{stationState();}
   shotAssets=assets;shotConfig={...config};screen('capture');await camera();
 }
+let printFile=null;
 async function showResult(record){
   current=record;screen('result');$('#final-photo').src=record.jpeg;$('#print-image').src=record.jpeg;$('#save-local').href=record.jpeg;$('#save-local').download=`giro-frame-${record.id.slice(0,8)}.jpg`;
-  $('#print').disabled=true;printableFile=photoFile(record.jpeg,`giro-frame-${record.id.slice(0,8)}.jpg`);
-  const mode=printMode(printableFile);
-  $('#print-help').textContent=mode==='share'?'Nel menu scegli Stampa e seleziona la DNP. Se Stampa non compare, scegli Salva immagine e stampa dall’app Foto.':mode==='save'?'Salva la foto sull’iPad e aprila in Foto: Condividi → Stampa → DNP.':'Seleziona la DNP e il formato della carta caricata. Il QR resta disponibile dopo la chiusura del menu.';
-  await $('#print-image').decode();$('#print').disabled=false;drawUpload();
+  $('#print').disabled=true;await $('#print-image').decode();try{printFile={id:record.id,file:jpegFile(record.jpeg,record.id)};}catch(e){printFile=null;}$('#print').disabled=false;drawUpload();
 }
 function drawUpload(){
   $('#qr').replaceChildren();$('#public-link').hidden=true;$('#retry-upload').hidden=true;
@@ -65,10 +60,10 @@ function drawUpload(){
 }
 async function upload(record){
   if(demo||record.demo||record.url||uploads.has(record.id))return;
-  if(!token){login('admin');return;}
+  if(!token){login('station');return;}
   uploads.add(record.id);if(current?.id===record.id)drawUpload();
   try{
-    const result=await api.call('upload',{token,id:record.id,jpeg:record.jpeg,configVersion:record.configVersion});
+    const result=await api.call('upload',{token,id:record.id,jpeg:record.jpeg,configVersion:record.configVersion,consent:true});
     record.url=result.url;record.downloadUrl=result.downloadUrl;record.uploadedAt=Date.now();
     await store('photos','put',record);
     if(current?.id===record.id)current=record;
@@ -88,12 +83,11 @@ async function refreshQueue(){
     });info.append(p,open,del);item.append(img,info);$('#queue').append(item);
   }
 }
-function reset(){stopCamera();raw=null;current=null;printableFile=null;$('#raw-preview').removeAttribute('src');$('#final-photo').removeAttribute('src');$('#print-image').removeAttribute('src');$('#save-local').removeAttribute('href');$('#qr').replaceChildren();stationState();screen('start');message();}
+function reset(){stopCamera();raw=null;current=null;printFile=null;$('#raw-preview').removeAttribute('src');$('#final-photo').removeAttribute('src');$('#print-image').removeAttribute('src');$('#save-local').removeAttribute('href');$('#qr').replaceChildren();$('#consent').checked=false;stationState();screen('start');message();}
 function guard(fn){return async e=>{try{await fn(e)}catch(err){message(err.message||'Operazione non riuscita. Riprova.');}};}
-$('#begin').onclick=guard(begin);$('#station-button').onclick=guard(async()=>{if(!adminToken&&!demo)return;const button=$('#station-button');button.disabled=true;try{const result=demo?{token:'demo'}:await api.call('activateStation',{token:adminToken});token=result.token;sessionStorage.setItem('giro-station',token);stationState();}finally{button.disabled=false;}});
-function openSettings(c){settingsVersion=c.version;const f=$('#settings-form');for(const key of ['title','subtitle','frameUrl','logoUrl'])f.elements[key].value=c[key];f.elements.newPassword.value='';$('#settings-error').textContent='';stationState();$('#settings-dialog').showModal();}
-$('#settings-button').onclick=()=>{if(demo){openSettings(config);return;}login('admin');};
-$('#lock-station').onclick=()=>{token='';sessionStorage.removeItem('giro-station');reset();stationState();};
+$('#consent').onchange=stationState;$('#begin').onclick=guard(begin);$('#station-button').onclick=()=>login('station');
+$('#settings-button').onclick=()=>{if(demo){message('Nella demo le impostazioni non vengono salvate. Configura Apps Script per attivarle.');return;}login('admin');};
+$('#lock-station').onclick=()=>{token='';adminToken='';sessionStorage.removeItem('giro-station');reset();message('Postazione bloccata. Le foto locali restano disponibili su questo iPad.');};
 $('#switch-camera').onclick=guard(async()=>{facing=facing==='environment'?'user':'environment';await camera();});
 $('#shutter').onclick=guard(()=>preview($('#video')));
 $('#file-input').onchange=guard(async e=>{const file=e.target.files[0];if(!file)return;if(file.size>25000000)throw new Error('Foto troppo grande: massimo 25 MB.');const url=URL.createObjectURL(file);try{preview(await loadImage(url));}finally{URL.revokeObjectURL(url);e.target.value='';}});
@@ -107,15 +101,15 @@ $('#continue').onclick=guard(async()=>{
     await store('photos','put',r);await showResult(r);await refreshQueue();void upload(r);raw=null;
   }finally{$('#continue').disabled=false;}
 });
-$('#print').onclick=async()=>{
-  if(!printableFile)return;
-  const button=$('#print');button.disabled=true;message();
-  try{
-    const result=await printPhoto(printableFile);
-    if(result==='save')message('Tocca “Salva copia sull’iPad”, poi apri la foto salvata e usa Condividi → Stampa.');
-  }catch{message('Impossibile aprire il menu. Tocca di nuovo STAMPA FOTO oppure salva la copia sull’iPad e stampala dall’app Foto.');}
-  finally{button.disabled=!current;}
+function jpegFile(dataUrl,id){const b=atob(dataUrl.split(',')[1]);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new File([a],`giro-frame-${id.slice(0,8)}.jpg`,{type:'image/jpeg'});}
+// Stampa come FOTO (menu Condividi → Stampa): iOS usa i formati foto della DNP (4×6) invece del foglio A4 della pagina web.
+$('#print').onclick=()=>{
+  if(!current)return;
+  let file=null;try{file=printFile&&printFile.id===current.id?printFile.file:jpegFile(current.jpeg,current.id);}catch(e){}
+  if(file&&navigator.canShare?.({files:[file]})){navigator.share({files:[file]}).catch(e=>{if(e.name!=='AbortError')window.print();});}
+  else window.print();
 };
+$('#print-browser').onclick=()=>{window.print();};
 $('#retry-upload').onclick=guard(()=>upload(current));$('#new-photo').onclick=reset;$('#refresh-queue').onclick=guard(refreshQueue);
 $('#login-form').onsubmit=async e=>{
   e.preventDefault();const button=e.submitter;button.disabled=true;$('#login-error').textContent='';
@@ -124,13 +118,14 @@ $('#login-form').onsubmit=async e=>{
     $('#login-password').value='';$('#login-dialog').close();
     if(loginMode==='station'){token=result.token;sessionStorage.setItem('giro-station',token);stationState();message('Postazione attivata.');}
     else{
-      adminToken=result.token;const c=await api.call('config');openSettings(c);
+      adminToken=result.token;const c=await api.call('config');settingsVersion=c.version;
+      const f=$('#settings-form');for(const key of ['title','subtitle','frameUrl','logoUrl'])f.elements[key].value=c[key];f.elements.newPassword.value='';$('#settings-error').textContent='';$('#settings-dialog').showModal();
     }
   }catch(err){$('#login-error').textContent=err.message;message(err.message);}
   finally{button.disabled=false;}
 };
 $('#settings-form').onsubmit=async e=>{
-  e.preventDefault();if(demo){$('#settings-error').textContent='Demo: le modifiche non vengono salvate.';return;}e.submitter.disabled=true;$('#settings-error').textContent='';
+  e.preventDefault();e.submitter.disabled=true;$('#settings-error').textContent='';
   try{
     const data=Object.fromEntries(new FormData(e.target));
     await prepareAssets(data);
