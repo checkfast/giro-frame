@@ -1,6 +1,9 @@
 import {cropToCanvas,compose,loadImage,safeAssetUrl,renderQr} from './core.js';
 import {store,photos} from './storage.js';
 import {Bridge} from './bridge.js';
+import {photoFile,printMode,createPrinter} from './printing.js';
+let printableFile;
+const printPhoto=createPrinter(navigator,()=>window.print());
 const $=s=>document.querySelector(s), demo=new URLSearchParams(location.search).get('demo')==='1'||window.GIRO_BOOT.demo;
 const defaults={title:'Il tuo momento in rosa.',subtitle:'Un sorriso, uno scatto. Porta con te il ricordo di questa giornata.',frameUrl:'',logoUrl:'',version:'demo'};
 let config,assets,shotAssets,shotConfig,raw,current,stream,facing='environment',adminToken,loginMode='station',settingsVersion;
@@ -47,7 +50,10 @@ async function begin(){
 }
 async function showResult(record){
   current=record;screen('result');$('#final-photo').src=record.jpeg;$('#print-image').src=record.jpeg;$('#save-local').href=record.jpeg;$('#save-local').download=`giro-frame-${record.id.slice(0,8)}.jpg`;
-  $('#print').disabled=true;await $('#print-image').decode();$('#print').disabled=false;drawUpload();
+  $('#print').disabled=true;printableFile=photoFile(record.jpeg,`giro-frame-${record.id.slice(0,8)}.jpg`);
+  const mode=printMode(printableFile);
+  $('#print-help').textContent=mode==='share'?'Nel menu scegli Stampa e seleziona la DNP. Se Stampa non compare, scegli Salva immagine e stampa dall’app Foto.':mode==='save'?'Salva la foto sull’iPad e aprila in Foto: Condividi → Stampa → DNP.':'Seleziona la DNP e il formato della carta caricata. Il QR resta disponibile dopo la chiusura del menu.';
+  await $('#print-image').decode();$('#print').disabled=false;drawUpload();
 }
 function drawUpload(){
   $('#qr').replaceChildren();$('#public-link').hidden=true;$('#retry-upload').hidden=true;
@@ -82,7 +88,7 @@ async function refreshQueue(){
     });info.append(p,open,del);item.append(img,info);$('#queue').append(item);
   }
 }
-function reset(){stopCamera();raw=null;current=null;$('#raw-preview').removeAttribute('src');$('#final-photo').removeAttribute('src');$('#print-image').removeAttribute('src');$('#save-local').removeAttribute('href');$('#qr').replaceChildren();stationState();screen('start');message();}
+function reset(){stopCamera();raw=null;current=null;printableFile=null;$('#raw-preview').removeAttribute('src');$('#final-photo').removeAttribute('src');$('#print-image').removeAttribute('src');$('#save-local').removeAttribute('href');$('#qr').replaceChildren();stationState();screen('start');message();}
 function guard(fn){return async e=>{try{await fn(e)}catch(err){message(err.message||'Operazione non riuscita. Riprova.');}};}
 $('#begin').onclick=guard(begin);$('#station-button').onclick=guard(async()=>{if(!adminToken&&!demo)return;const button=$('#station-button');button.disabled=true;try{const result=demo?{token:'demo'}:await api.call('activateStation',{token:adminToken});token=result.token;sessionStorage.setItem('giro-station',token);stationState();}finally{button.disabled=false;}});
 function openSettings(c){settingsVersion=c.version;const f=$('#settings-form');for(const key of ['title','subtitle','frameUrl','logoUrl'])f.elements[key].value=c[key];f.elements.newPassword.value='';$('#settings-error').textContent='';stationState();$('#settings-dialog').showModal();}
@@ -101,7 +107,15 @@ $('#continue').onclick=guard(async()=>{
     await store('photos','put',r);await showResult(r);await refreshQueue();void upload(r);raw=null;
   }finally{$('#continue').disabled=false;}
 });
-$('#print').onclick=()=>{window.print();};
+$('#print').onclick=async()=>{
+  if(!printableFile)return;
+  const button=$('#print');button.disabled=true;message();
+  try{
+    const result=await printPhoto(printableFile);
+    if(result==='save')message('Tocca “Salva copia sull’iPad”, poi apri la foto salvata e usa Condividi → Stampa.');
+  }catch{message('Impossibile aprire il menu. Tocca di nuovo STAMPA FOTO oppure salva la copia sull’iPad e stampala dall’app Foto.');}
+  finally{button.disabled=!current;}
+};
 $('#retry-upload').onclick=guard(()=>upload(current));$('#new-photo').onclick=reset;$('#refresh-queue').onclick=guard(refreshQueue);
 $('#login-form').onsubmit=async e=>{
   e.preventDefault();const button=e.submitter;button.disabled=true;$('#login-error').textContent='';
