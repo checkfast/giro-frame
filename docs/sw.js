@@ -1,5 +1,5 @@
 // Solo l'interfaccia locale. Mai richieste Google, credenziali o foto in CacheStorage.
-const CACHE='giro-frame-shell-v2';
+const CACHE='giro-frame-shell-v3';
 const FILES=['./','index.html','style.css','config.js','app.js','bridge.js','core.js','storage.js','vendor/qrcode.js','assets/frame-demo.svg','assets/logo-demo.svg','assets/icon.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('giro-frame-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

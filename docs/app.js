@@ -109,7 +109,7 @@ $('#print').onclick=()=>{
   if(file&&navigator.canShare?.({files:[file]})){navigator.share({files:[file]}).catch(e=>{if(e.name!=='AbortError')window.print();});}
   else window.print();
 };
-$('#print-browser').onclick=()=>{window.print();};
+{const pb=$('#print-browser');if(pb)pb.onclick=()=>{window.print();};}
 $('#retry-upload').onclick=guard(()=>upload(current));$('#new-photo').onclick=reset;$('#refresh-queue').onclick=guard(refreshQueue);
 $('#login-form').onsubmit=async e=>{
   e.preventDefault();const button=e.submitter;button.disabled=true;$('#login-error').textContent='';
